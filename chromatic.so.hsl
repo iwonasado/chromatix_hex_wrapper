@@ -38,9 +38,9 @@ struct ExposureTable
 	
 	ushort Max_Exposure_Table_entries;
 	long Enable_Digital_Gain_for_EV_Lowlight;
-        long Max_Exposure_Table_Entries_for_EV_2_with_digital_gain;	
+    long Max_Exposure_Table_Entries_for_EV_2_with_digital_gain;	
 	//struct ExposureTableEntry entrys[Max_Exposure_Table_entries];
-	struct ExposureTableEntry entrys[Max_Exposure_Table_Entries_for_EV_2_with_digital_gain];
+	struct ExposureTableEntry entrys[540]; //default 500 //lg 540
 	__verify(Max_Exposure_Table_entries >  0) ;
 	__verify(Use_Digital_Gain < 2 && Use_Digital_Gain >= 0) ;
 };
@@ -859,7 +859,7 @@ struct libchromatix
 		//g3_lib has 178*8bit space after expotable to AEC_Snapshot_Exposure/tablecount 451
 		//z5 lib has 126*8bit space after expotable to AEC_Snapshot_Exposure/tablecount 437
 		//if(sizeof(expotable) > 3500)
-			long leftEposureTableSpace[178];
+			//long leftEposureTableSpace[178];
 		//if(sizeof(expotable) > 3400 &&  sizeof(expotable) < 3500)
 			//long leftEposureTableSpace[126];
 		struct AEC_Snapshot_Exposure
