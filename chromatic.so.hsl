@@ -753,7 +753,75 @@ struct libchromatix
 		};
 
 		struct AWBMotionSensor AWB_motion_sensor_type_to_aide_AWB_in_determining_a_change_in_scene;
-
+		
+		struct MatchLEDLevel
+		{
+			long TableSize; 
+			struct LEDTABLE entry0;
+			struct LEDTABLE entry1;
+			struct LEDTABLE entry2;
+			struct LEDTABLE entry3;
+			struct LEDTABLE entry4;
+			struct LEDTABLE entry5;
+			struct LEDTABLE entry6;
+			struct LEDTABLE entry7;
+			struct LEDTABLE entry8;
+			struct LEDTABLE entry9;
+			struct LEDTABLE entry10;
+			struct LEDTABLE entry11;
+			struct LEDTABLE entry12;
+			struct LEDTABLE entry13;
+			struct LEDTABLE entry14;
+			struct LEDTABLE entry15;
+		};
+		long BrightGreenPercentage;
+		long DarkGreenPercentage;
+		long DarkRThreshold;
+		long DarkGThreshold;
+		long DarkBThreshold;
+		long WhiteStatYThresholdHigh;
+		float ThresholdExtremeBPercent;
+		float ThresholdExtremeRPercent;
+		long ThresholdCompactCluster;
+		long CompactToGreyDIS;
+		long ThresholdCompactClusterValid;
+		long DominantClusterThreshold;
+		long Dis_weight_table[241];
+		long OutdoorAdjustment;
+		long ExposureAdjustment;
+		float OutlierValidyMax;
+		float ClusterHighPEC;
+		float ClusterMidPEC;
+		float ClusterLowPEC;
+		struct weightfactor
+		{
+			long d65[4];
+			long d75[4];
+			long a[4];
+			long warm_fluorescent[4];
+			long cool_fluorescent[4];
+			long horizon[4];
+			long d50[4];
+			long cust_flo[4];
+			long noon[4];
+			long custom_daylight[4];
+			long custom_a[4];
+			long u30[4];
+			long daylight_hybrid1[4];
+			long daylight_hybrid2[4];
+			long a_line1[4];
+			long a_line2[4];
+			long f_line[4];
+		};
+		float Ref_B_BG_Tl84;
+		float Ref_R_RG_A;
+		float Extreme_Range_Offset_B;
+		float Extreme_Range_Offset_R;
+		long Threshold_Compact_Cluster_Grey;
+		float BlueSkyPercent;
+		float BlueSkyPercentBuffer;
+		float SlopeFactorM;
+		float ExtremeMCCBlueThreshold;
 	};
 };
 
