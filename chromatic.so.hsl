@@ -1,0 +1,822 @@
+#include "standard-types.hsl"
+
+#pragma enumsize(4)
+#pragma ptrsize(4)
+#pragma byteorder(little_endian)
+
+#pragma displayname("Elf (*.so)") ;
+#pragma fileextensions(".so") ;
+
+struct trigger_point_type
+{
+    float gain_start;      ///< Gain based trigger point.
+    float gain_end;        ///< Gain based end point.
+    long lux_index_start; ///< Lux index based trigger point.
+    long lux_index_end;   ///< Lux index based end point.
+};
+
+struct trigger_point_type_with_f
+{
+  struct trigger_point_type trigger_points;
+  /* Fmin */
+  /* Fmax */
+  /* Lowlight Fmin */
+  /* Lowlight Fmax */
+  ubyte fvalues[4];
+  
+};
+
+struct ExposureTableEntry
+{
+   long gain_val;
+   long multiplikator;
+};
+
+struct ExposureTable
+{
+   long Use_Digital_Gain;
+    
+   long Max_Exposure_Table_entries;
+   struct ExposureTableEntry entrys[Max_Exposure_Table_entries];
+   __verify(Max_Exposure_Table_entries >  0) ;
+   __verify(Use_Digital_Gain < 2 && Use_Digital_Gain >= 0) ;
+};
+
+struct AEC_Bright_Region
+{
+  long IsSupported;
+  float Reduction;
+  long Threshold_Low;
+  long Lux_Index_Low;
+  long Threshold_High;
+  long Lux_Index_High;
+  float Discard_Ratio;
+};
+
+struct fourLongArray
+{
+long values1;
+long values2;
+long values3;
+long values4;
+};
+
+struct Light_parameters
+{
+ word redchan12bitvalues[3];
+ word emtpy;
+ float redchanfloats[2];
+
+ word greenchan12bitvalues[3];
+ word empty;
+ float greenchanfloats[2];
+ float greenchanfloats2[2];
+
+ word bluechan12bitvalues[3];
+ word empty;
+ float bluechanfloats[2];
+
+ float positiveTable[16];
+ float negativeTable[8];
+ 
+
+};
+
+struct luma_light_parameters
+{
+ word Thresholds[3];
+ word empty;
+ float Scale_Factors[2];
+
+ float positiveTable[16];
+ float negativeTable[8];
+};
+
+struct badpixel_offset
+{
+ word normal_light[8];
+ word low_light[8];
+};
+
+struct Feature
+{
+  long Control_Method;
+  struct trigger_point_type_with_f lowlighttrigger;
+  struct badpixel_offset offset;
+};
+
+struct Color_Conversion
+{
+  float matrix_a_d[8];
+  word matrix_k[2];
+  float matrix_v[3];
+  long k;
+};
+
+struct Extraction_Factor_Setting
+{
+ byte factor1[6];
+ byte empty[2];
+ float factor2[2];
+ byte factor3[2];
+ byte empty[2];
+}; 
+
+struct mce_color
+{
+ ubyte y[4];
+float boost_factor;
+byte cr_boundary;
+byte cb_boundary;
+byte cr_transition_width;
+byte cb_transition_width;
+word bright_index;
+word dark_index;
+};
+
+struct noise_profile
+{
+ float triggervalue;
+ float matrix[24];
+ float Denoise_Scale_Y[4];
+ float Denoise_Scale_Chroma[4];
+ float Denoise_Edge_Softness_Y[4];
+ float Denoise_Edge_Softness_Chroma[4];
+ float Denoise_Weight_Y[4];
+ float Denoise_Weight_Chroma[4];
+ long SW_Denosie_Edge_Threshold_Y;
+ long SW_Denosie_Edge_Threshold_Chroma;
+};
+
+struct noise_profile_type
+{
+long enable;
+ long controle_method;
+ struct noise_profile profile1;
+ struct noise_profile profile2;
+ struct noise_profile profile3;
+ struct noise_profile profile4;
+ struct noise_profile profile5;
+ struct noise_profile profile6;
+};
+
+struct temporal_noise_profile
+{
+ float triggervalue;
+ float noiseprofile[3];
+ float Denoise_Scale_Y; 
+ float Denosie_Scale_Chroma;
+};
+
+struct cct_trigger
+{
+  long start;
+  long end;
+};
+
+struct Triangle
+{
+ long triangle[6];
+};
+
+struct Triangles
+{
+ struct Triangle triangle1;
+ struct Triangle triangle2;
+ struct Triangle triangle3;
+ struct Triangle triangle4;
+ struct Triangle triangle5;
+};
+
+struct AWB_Stats_Profile
+{
+ubyte YMin;
+ubyte YMax;
+byte Slope_of_neutral_region_and_line_number[4];
+//Cb intercept of neutral region and line number
+ushort one;
+word two;
+ushort three;
+ushort four;
+};
+
+struct AWB_Gain_Adjust
+{
+float d65[2];
+float d75[2];
+float A[2];
+float TL84[2];
+float cw[2];
+float horizon[2];
+float d50[2];
+float cust_flo[2];
+float noon[2];
+float daylight[2];
+float cust_a[2];
+float u30[2];
+};
+
+struct libchromatix
+{
+  blob  elfheader[4100];
+/* Chromatix common DMSS header file version number */
+  long chromatix_version_type;
+  long Revision;
+/* VFE Blocks */
+ /* Black-Level Subtraction */
+/*********************************************************************/
+// Feature name :
+// Use gain or lux_index to control black level subtraction.
+// Range: 0 or 1.
+// 0 means to use lux_index to control.
+// 1 means to use gain to control.
+/*********************************************************************/
+  long Control_Method;
+/*********************************************************************/
+// Feature name :
+// Trigger point for black level subtraction.
+// gain start :
+// When gain >= gain_start, lowlight black level is interpolated with normal black level.
+// Range: min_gain to max_gain. Gain means digital and analog combined gain.
+// Effect: Increasing this value will use lowlight black level under lower light condition.
+//
+// gain end:
+// When gain >= gain_end, 100% lowlight black level is used.
+// Range: min_gain to max_gain. Gain means digital and analog combined gain.
+// Constraint: gain_end > gain_start.
+// Effect: Increasing this value will use 100% lowlight black level under lower light condition.
+//
+// lux_index_start:
+// When lux_index >= lux_index_start, lowlight black level is interpolated with normal black level.
+// Range: For linear AFR case: 0 to max_index from exposure table.
+//		  For non-linear AFR case : 0 to max_index*numberof_FPS_supported.
+// Effect: Increasing this value will use lowlight black level under lower light condition.
+//
+// lux_index_end:
+// When lux_index >= lux_index_end, 100% lowlight black level is used.
+// Range: For linear AFR case: 0 to max_index from exposure table.
+//		  For non-linear AFR case : 0 to max_index*numberof_FPS_supported.
+// Constraint: lux_index_end > lux_index_start.
+// Effect: Increasing this value will use 100% lowlight black level under lower light condition.
+//
+/*********************************************************************/
+  struct trigger_point_type black_level_subtractiot_trigger_points;
+  
+  //dont know what these values are lookslike they are packed
+  blob unkown[4 *3];
+
+  /* Channel Balance Gains */ 
+  float chan_balance_gains[4] ;
+/* Adaptive Bayer Filter 2 */
+  word control_method; //values must extracted to two 16bit
+  word lux_index;
+/* ABF2 Low Light Trigger Points */
+ struct trigger_point_type ABF2_Low_Light_trigger_points;
+/* ABF2 Bright Light Trigger Points */
+ struct trigger_point_type ABF2_Bright_Light_trigger_points;
+
+ struct Light_parameters ABF2_Low_Light_parameters;
+ struct Light_parameters ABF2_Normal_Light_parameters;
+ struct Light_parameters ABF2_Bright_Light_parameters;
+ 
+ /*********************************************************************/
+// Feature name : bad pixel correction parameters
+// Fmin and Fmax are used for bad pixel correction (BPC).
+// Range: 1 to 255.
+// Constraint: Fmax > Fmin.
+// Effect: Smaller Fmin and higher Fmax will have least amount of correction.
+//        Setting Fmax=Fmin will have the max amount of correction.
+/*********************************************************************/
+ struct Feature badpixelcorrection;
+
+/******************************************************************************/
+// Feature name : bad cluster correction (BCC)
+/******************************************************************************/
+struct Feature badclustercorrection;
+
+/* Demosaic3 */
+
+struct demosaic
+{
+long control;
+struct trigger_point_type demosaic_lowlight_trigger_points;
+/* Demosaic LUT */
+float wk[18];
+long bk[18];
+long lk[18];
+long Tk[18];
+float aG[2];
+float bl[2];
+};
+
+struct Chroma_and_Luma_Filters
+{
+ long control_method;
+ struct trigger_point_type lowLight_trigger_points;
+ long Enableindex;
+ /* Filters */
+  /* Lowlight Chroma Filter */
+   /* H */
+   float h[4];
+   /* V */
+   float v[2];
+   /* Normal Light Chroma Filter */
+   float h[4];
+   /* V */
+   float v[2];
+ long control_method;
+ //Feature name : Luma filter low light trigger points.
+ struct trigger_point_type lowLight_trigger_points;
+
+ struct trigger_point_type brightLight_trigger_points;
+ /* Enable Index bright light */
+ long enable; 
+
+/******************************************************************************/
+// Feature name : Luma filter low light parameters.
+/******************************************************************************/
+ struct luma_light_parameters luma_low_light_parameters;
+ struct luma_light_parameters luma_normal_light_parameters;
+ struct luma_light_parameters luma_bright_light_parameters;
+};
+
+struct ColorCorrection
+{
+ long ControlMethod;
+
+// Feature name :
+// Trigger point for color correction.
+// gain start :
+// When gain >= gain_start, lowlight CC is interpolated with normal CC.
+// default: N/A
+// Range: min_gain to max_gain. Gain means digital and analog combined gain.
+// Effect: Increasing this value will use lowlight CC under lower light condition.
+//
+// gain end:
+// When gain >= gain_end, 100% lowlight CC is used.
+// default: N/A
+// range: min_gain to max_gain. Gain means digital and analog combined gain.
+// constraint: gain_end > gain_start.
+// effect: Increasing this value will use 100% lowlight CC under lower light condition.
+//
+// lux_index_start:
+// When lux_index >= lux_index_start, lowlight CC is interpolated with normal CC.
+// default: N/A
+// range: For linear AFR case: 0 to max_index from exposure table.
+//		  For non-linear AFR case : 0 to max_index*numberof_FPS_supported.
+// effect: Increasing this value will use lowlight CC under lower light condition
+//
+// lux_index_end:
+// When lux_index >= lux_index_end, 100% lowlight CC is used.
+// default: N/A
+// range: Ror linear AFR case: 0 to max_index from exposure table.
+//		  For non-linear AFR case : 0 to max_index*numberof_FPS_supported.
+// constraint: lux_index_end > lux_index_start.
+// effect: Increasing this value will use 100% lowlight CC under lower light condition.
+
+ struct trigger_point_type trigger_points;
+/*********************************************************************/
+// Feature name :
+// Trigger point for color temperature related control (A).
+// Applicable chipset: For all chipsets.
+// 3A version: 2.2
+// When the color temperature < A_start and > A_end, use interpolation between A and FL.
+// When the color temperature >=A_end, just use A parameters.
+// Range: 4100 > A_start > A_end > 2850.
+// Effect: A_start and A_end controls the range of interpolation between A and FL.
+// Constraint: A_start > A_end.
+/*********************************************************************/
+ long cct_start;
+ long cct_end;
+
+/*********************************************************************/
+// Feature name :
+// Trigger point for color temperature related control (Daylight).
+// Applicable chipset: For all chipsets.
+// 3A version: 2.2
+// When the color temperature > Daylight_start and < Daylight_end, use interpolation between D65 and FL.
+// When the color temperature >=D65_end, just use D65 parameters.
+// Range: 4100 < Dayligh_start < Dayligh_end < 5000.
+// Effect: Daylight_start and Daylight_end controls the range of interpolation between Daylight and FL.
+// Constraint: Daylight_start < Daylight_end.
+ long cct_d65_start;
+ long cct_d65_end;
+
+/******************************************************************************/
+// Feature name: Color Correction Trigger Point for LED Flash
+// Applicale chipset(s): ALL with LED Flash 
+// Applicable operation mode:  Flash Snapshot and ZSL, determined in preview
+//
+// Variable name: CC_LED_start
+// Sets start trigger for interpolation of CC
+//     k1 = aec_d->flash_si.off / aec_d->flash_si.high;
+// Default value:  1.0
+// Data range: 1.0 to 100
+// Constraints: None
+// Effect: Higher value allows less LED CC to be used 
+//  
+// Variable name: CC_LED_end
+// Sets end trigger for interpolation of CC
+//     k1 = aec_d->flash_si.off / aec_d->flash_si.high;
+// Default value:  7.5
+// Data range: 1.0 to 100
+// Constraints: None
+// Effect: Higher value allows less LED CC to be used, value closer to 
+//     CC_LED_start may cause shot to shot variation due to sudden change in CC
+/******************************************************************************/
+ float cct_flash_start;
+ float cct_flash_end;
+
+/******************************************************************************/
+// Feature name: Color Correction Trigger Point for Xenon Strobe Flash
+// Applicale chipset(s): ALL with Strobe Flash 
+// Applicable operation mode:  Flash Snapshot and ZSL, determined in preview
+//
+// Variable name: CC_strobe_start
+// Sets start trigger for interpolation of CC
+//     k1 = aec_d->flash_si.off / aec_d->flash_si.high;
+// Default value:  1.0
+// Data range: 1.0 to 100
+// Constraints: None
+// Effect: Higher value allows less Xenon Strobe CC to be used 
+//  
+// variable name: CC_strobe_end
+// Sets end trigger for interpolation of CC
+//     k1 = aec_d->flash_si.off / aec_d->flash_si.high;
+// Default value:  7.5
+// Data range: 1.0 to 100
+// Constraints: None
+// Effect: Higher value allows less Xenon Flash CC to be used, value closer to 
+//     CC_strobe_start may cause shot to shot variation due to sudden change in CC
+/******************************************************************************/
+ float cct_strobe_start;
+ float cct_strobe_end;
+/*********************************************************************/
+// Feature name :
+// Normal and bright light color correction.
+// 3x3 coefficients:
+// Data range: -15.99 to 15.99.
+// Constraint: The sum of each row needs to be 1.
+// Effect: Higher diagonal values result in higher color saturation with higher noise.
+//
+// 3 offsets
+// Data range: -1023 to 1023.
+// Default : 0
+// Effect: Negative values will make image darker while positive values make image brighter.
+//
+// Q factor:
+// Always set it to 0.
+/*********************************************************************/
+//float TL84_Color_Correction[13];
+//float TL84_Color_Correction_sheet_ratio[13];
+//float Low_light_color_correction[13];
+float D65_Color_Correction[13];
+float A_Color_Correction[13];
+float Outdoor_Color_Correction[13];
+float LED_Flash_Color_Correction[13];
+float Strobe_Flash_Color_Correction[13];
+float UnkownField[12];
+};
+
+struct GammaTables
+{
+ long Control_Method;
+ struct trigger_point_type low_light_trigger_points;
+ struct trigger_point_type outdoor_trigger_points;
+ ubyte Normal_light_gamma[64];
+ ubyte Lowlight_light_gamma[64];
+ ubyte Bright_light_gamma[64];
+};
+
+struct Color_Conversion
+{
+ long Control_Method;
+ struct trigger_point_type low_light_trigger_points;
+ long CCT_Trigger[2]; //start &end
+ long D65_CCT_Trigger[2];//start &end
+ struct Color_Conversion TL84_Color_Conversion;
+ struct Color_Conversion A_Color_Conversion;
+ struct Color_Conversion D65_Color_Conversion;
+ struct Color_Conversion Yhi_Ylo_Color_Conversion;
+ struct Color_Conversion Outdoor_Color_Conversion;
+ struct Color_Conversion Monochrome_Color_Conversion;
+ struct Color_Conversion Sepia_Color_Conversion;
+ struct Color_Conversion Negative_Color_Conversion;
+ struct Color_Conversion Aqua_Color_Conversion; 
+ float Saturated_Color_Conversion_Factor;
+};
+
+struct _5x5_ASF
+{
+ long control_method;
+ struct trigger_point_type low_light_trigger_points;
+ struct trigger_point_type outdoor_trigger_points;
+ long filtermode;
+ float normalize_factor1;
+ float normalize_factor2;
+ short _5x5_Filter_1[25];
+ short _5x5_Filter_2[25];
+ long Extraction_Factor;
+ struct Extraction_Factor_Setting lowlight;
+ struct Extraction_Factor_Setting normallight;
+ struct Extraction_Factor_Setting brightlight;
+ float Soft_Focus_Degree;
+ float _5x5_Sharp_Min_DS_Factor;
+ float _5x5_Sharp_Max_DS_Factor;
+ float _5x5_Sharp_Max_Factor;
+
+
+};
+
+struct _7x7_ASF
+{
+  long control_method;
+  struct trigger_point_type low_light_trigger_points;
+  struct trigger_point_type bright_light_trigger_points;
+  long enable;
+  //3x3 Smooth Percentage
+  word lowlight;
+  word normallight;
+  word brightlight;
+  word empty;
+  long Enable_Special_Effects;
+  long neg_abs_y1;
+  long negmatrix[3]; /* nz [0] for F1, [1] for F2, [2] for F3 and F4 */
+  struct F1{
+  float lowlight[16];
+  float normallight[16];
+  float brightlight[16];
+  };
+  struct F2{
+  float lowlight[16];
+  float normallight[16];
+  float brightlight[16];
+  };
+  struct F3{
+  float lowlight[16];
+  float normallight[16];
+  float brightlight[16];
+  };
+  struct F4{
+  float lowlight[16];
+  float normallight[16];
+  float brightlight[16];
+  };
+  struct F5{
+  float light[16];
+  };
+  struct H_Lut1
+  {
+   float lowlight[24];
+   float normallight[24];
+   float brightlight[24];
+  };
+  struct V_Lut2
+  {
+   float lowlight[24];
+   float normallight[24];
+   float brightlight[24];
+  };
+  long Enable_Dynamic_Clamping[3];
+  float smax[3];
+  long omax[3];
+  float smin[3];
+  long omin[3];
+  long reg_hh[3];
+  long reg_hl[3];
+  long reg_vh[3];
+  long oreg_vlmin[3];
+  struct lut3
+  {
+    float lowlight[12];
+    float normallight[12];
+    float brightlight[12];
+  };
+  float Soft_Focus_Degree;
+  float Sharp_Min_DS_Factor;
+  float Sharp_Max_DS_Factor;
+  float Sharp_Max_Factor;
+};
+
+struct Luma_Adaptation
+{
+long enable;
+long controle_method;
+struct trigger_point_type low_light_trigger_points;
+byte Indoor_Luma_Adaptation[5];
+byte empty;
+byte Outdoor_Luma_Adaptation[5];
+byte empty;
+long Luma_Target_Adjust;
+};
+
+struct Chroma_Suppression_Memory_Color_Enhancement
+{
+long control_method;
+struct trigger_point_type low_light_trigger_points;
+ubyte Low_Light_Chroma_Suppression[6];
+ubyte Chroma_Suppression[6];
+//Chroma threshold for strong chroma suppression
+ubyte Chroma_Thresh_BW;
+ubyte Chroma_Thresh_Color;
+ubyte empty[2];
+
+struct Memory_Color_Enhancement
+{
+  struct mce_color green;
+  struct mce_color blue;
+  struct mce_color red;
+};
+};
+
+struct WavletDenoise
+{
+struct noise_profile_type Wavelet_Noise_SW_420;
+struct noise_profile_type Wavelet_Noise_SW_422;
+struct noise_profile_type Wavelet_Noise_HW_420;
+struct noise_profile_type Wavelet_Noise_HW_422;
+
+};
+
+struct Wavelet_Temporal_Noise
+{
+  long index;
+  long control_methode;
+  struct temporal_noise_profile profile1;
+  struct temporal_noise_profile profile2;
+  struct temporal_noise_profile profile3;
+  struct temporal_noise_profile profile4;
+  struct temporal_noise_profile profile5;
+  struct temporal_noise_profile profile6;
+  long Algorithm; /* Algorithm Select, 0 power function, 1 Gaussian, 2 local linear minimum mean-squared error */
+};
+
+struct Skin_Color_Enhancement
+{
+ long enable;
+ long control_method;
+ struct trigger_point_type low_light_trigger_points;
+ struct cct_trigger A_CCT_Trigger;
+ struct cct_trigger D65_CCT_Trigger;
+ struct Triangles TL84_Origin_Triangles;
+ struct Triangles TL84_Destination_Triangles;
+ float TL84_Shift_Vector[2];
+ float Outside_Region_Mapping[6];
+ struct Triangles A_Origin_Triangles;
+ struct Triangles A_Destination_Triangles;
+ float A_Shift_Vector[2];
+ struct Triangles D65_Origin_Triangles;
+ struct Triangles D65_Destination_Triangles;
+ float D65_Shift_Vector[2];
+};
+
+struct Statistics_Configuration
+{
+ struct  AWB_Stats
+ {
+   struct AWB_Stats_Profile lowlight;
+   struct AWB_Stats_Profile normallight;
+   struct AWB_Stats_Profile outdoorlight;
+   word emtpy;
+ };
+
+ struct Auto_Flicker_Detection
+ {
+  long Row_Sum_Enable;
+  float Row_Sum_offset_ratio[4];
+  long V_Subsample_Ratio;
+  long Col_Sum_Enable;
+  float Col_Sum_offset_ratio[4];
+  long Col_Sum_H_Subsample_Ratio;
+ };
+
+struct Bayer_Histogram_Config
+{
+ float Bayer_Histogram_Statistics[4];
+ //Bayer Grid Config
+ ubyte Saturation[4]; //R, GR, GB, B
+ float Offset[4];
+ word num_regions[2];
+/* Bayer Exp Window */
+ ubyte Saturation[4]; //R, GR, GB, B
+ float Offset[4];
+ word num_regions[2];
+};
+
+struct Skintone_Detection
+{
+ float factors[8];
+ long Percentage;
+};
+
+};
+
+struct Manual_Whitebalance
+{
+ float TL84_Whitebalance_RGB[3];
+ float D50_Whitebalance_RGB[3];
+ float A_Whitebalance_RGB[3];
+ float D65_Whitebalance_RGB[3];
+ float Strobe_Flash_Whitebalance_RGB[3];
+ float LED_flash_Whitebalance_RGB[3];
+ long Auto_Whitebalance;
+
+struct AWB_Reference_Points_w_HW
+{
+float D65_AWB_Reference_Point[2];
+float Shade_AWB_Reference_Point[2];
+float A_AWB_Reference_Point[2];
+float TL84_AWB_Reference_Point[2];
+float CoolWhite_AWB_Reference_Point[2];
+float Horizon_AWB_Reference_Point[2];
+float D50_AWB_Reference_Point[2];
+float Custom_Flour_AWB_Reference_Point[2];
+float Noon_AWB_Reference_Point[2];
+float Custom_Daylight_AWB_Reference_Point[2];
+float Custom_A_AWB_Reference_Point[2];
+float U30_AWB_Reference_Point[2];
+};
+float LED_Gain_Adjust[2];
+float Strobe_Gain_Adjust[2];
+
+struct AWB_Gain_Adjust awb_gain_adjust;
+struct AWB_Gain_Adjust lowlight_awb_gain_adjust;
+long indoor_index;
+long outdoor_index;
+float Snow_Blue_Gain_Adj_Ratio;
+float Beach_Blue_Gain_Adj_Ratio;
+long Outlier_Distance;
+long Green_Zone_Offset_RG;
+long Green_Zone_Offset_BG;
+long Num_Frames_to_skip_after_changing_VFE;
+float AWB_Extreme_RG_Ratio_Treshold;
+float AWB_Extreme_BG_Ratio_Treshold;
+word CompactClusterR2;
+word CompactClusterToRefPointR2;
+ubyte AClusterThreshold;
+ubyte FClusterThreshold;
+ubyte DayClusterThreshold;
+ubyte OutdoorGreenThreshold;
+ubyte OutdoorGreenThresholdBrightF;
+ubyte OutdoorGreenThresholdDarkF;
+ubyte DayClusterThresholdForF;
+ubyte unkown[9];
+
+float AWBMinGainsRGB[3];
+float AWBMaxGainsRGB[3];
+float AWBSampleInfluence__Outdoor_Indoor[2];
+
+};
+
+};
+
+function aligneStructures
+{
+ UQWord pos = 0 ;
+ UQWord end = __getDocSize() ;
+ while(pos < end)
+ {
+  UQWord t = __addStructureAt(pos, "ExposureTable", "");
+  if(t == 0)
+   pos += 4;
+  if(t > 0)
+   pos += t;
+ };
+};
+
+function FindChromatixVersion
+{
+ UQWord pos = 0 ;
+ UQWord end = __getDocSize() ;
+ while(pos < end)
+ {
+  if(__getUDWordAt(pos) == 0x01030000)
+  {
+    __addStructureAt(pos, "libchromatix", "");
+  }
+  else
+  { 
+   pos += 8;
+  };
+ };
+};
+
+
+function FindAllPossibleExposureTables
+{
+ UQWord pos = 0 ;
+ UQWord end = __getDocSize();
+ UDWord val;
+ UDWord val2;
+ while(pos < end)
+ {
+   val = __getUDWordAt(pos);
+   val2 = __getUDWordAt(pos + 8);
+   if((val == 0 || val == 1) && val2 > 100 && val2 < 900 )
+   {
+         __addStructureAt(pos, "ExposureTable", "");
+     
+   };
+   pos+=8;
+ };
+};
