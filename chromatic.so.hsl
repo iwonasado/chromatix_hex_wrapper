@@ -38,8 +38,8 @@ struct ExposureTable
 	
 	ushort Max_Exposure_Table_entries;
 	long Enable_Digital_Gain_for_EV_Lowlight;
-    long Max_Exposure_Table_Entries_for_EV_2_with_digital_gain;	
-	struct ExposureTableEntry entrys[Max_Exposure_Table_entries];
+        long Max_Exposure_Table_Entries_for_EV_2_with_digital_gain;	
+	//struct ExposureTableEntry entrys[Max_Exposure_Table_entries];
 	struct ExposureTableEntry entrys[Max_Exposure_Table_Entries_for_EV_2_with_digital_gain];
 	__verify(Max_Exposure_Table_entries >  0) ;
 	__verify(Use_Digital_Gain < 2 && Use_Digital_Gain >= 0) ;
@@ -262,6 +262,27 @@ struct F
 	float lowlight[16];
 	float normallight[16];
 	float brightlight[16];
+};
+
+struct Snapshot_Table_Entry
+{
+	long luxindex;
+	float gain_traid_off;
+	float max_exp_time;
+};
+
+struct Snapshot_Table
+{
+	struct Snapshot_Table_Entry _0;
+	struct Snapshot_Table_Entry _1;
+	struct Snapshot_Table_Entry _2;
+	struct Snapshot_Table_Entry _3;
+	struct Snapshot_Table_Entry _4;
+	struct Snapshot_Table_Entry _5;
+	struct Snapshot_Table_Entry _6;
+	struct Snapshot_Table_Entry _7;
+	struct Snapshot_Table_Entry _8;
+	struct Snapshot_Table_Entry _9;
 };
 
 struct libchromatix
@@ -832,6 +853,22 @@ struct libchromatix
 		long softwaretype;
 		float cc_global_gain;
 		struct ExposureTable expotable;
+		//g3_lib has 178*8bit space after expotable to AEC_Snapshot_Exposure/tablecount 451
+		//z5 lib has 126*8bit space after expotable to AEC_Snapshot_Exposure/tablecount 437
+		long leftEposureTableSpace[178];
+		struct AEC_Snapshot_Exposure
+		{
+			long enable;
+			long stretch_enable;
+			long valid_entries;
+			struct Snapshot_Table snapshot_table;
+		};
+		
+		byte DefaultLumaTarget;
+		byte OutdoorLumaTarget;
+		short empty;
+		long LumaTolerance;
+		float ExposureIndexAdjStep;
 	};
 };
 
