@@ -287,11 +287,14 @@ struct Snapshot_Table
 
 struct libchromatix
 {
+	#pragma lockAt(0x00000000)
+
 	blob  elfheader[4100];
 	/* Chromatix common DMSS header file version number */
-	long chromatix_version_type;
-	long Revision;
-
+	short chromatix_version_type;
+	
+	short Revision;
+    long empty;
 	long Control_Method;
 	struct trigger_point_type black_level_subtractiot_trigger_points;
 
@@ -855,7 +858,10 @@ struct libchromatix
 		struct ExposureTable expotable;
 		//g3_lib has 178*8bit space after expotable to AEC_Snapshot_Exposure/tablecount 451
 		//z5 lib has 126*8bit space after expotable to AEC_Snapshot_Exposure/tablecount 437
-		long leftEposureTableSpace[178];
+		//if(sizeof(expotable) > 3500)
+			long leftEposureTableSpace[178];
+		//if(sizeof(expotable) > 3400 &&  sizeof(expotable) < 3500)
+			//long leftEposureTableSpace[126];
 		struct AEC_Snapshot_Exposure
 		{
 			long enable;
