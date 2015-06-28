@@ -254,6 +254,13 @@ struct AWBMotionSensor
 	};
 };
 
+struct F
+{
+	float lowlight[16];
+	float normallight[16];
+	float brightlight[16];
+};
+
 struct libchromatix
 {
 	blob  elfheader[4100];
@@ -265,6 +272,7 @@ struct libchromatix
 	struct trigger_point_type black_level_subtractiot_trigger_points;
 
 	//dont know what these values are lookslike they are packed
+	 /* Four Channel Normal Light Black-Level */
 	blob unkown[4 *3];
 
 	/* Channel Balance Gains */ 
@@ -413,28 +421,11 @@ struct libchromatix
 		word empty;
 		long Enable_Special_Effects;
 		long neg_abs_y1;
-		long negmatrix[3]; /* nz [0] for F1, [1] for F2, [2] for F3 and F4 */
-		struct F1{
-			float lowlight[16];
-			float normallight[16];
-			float brightlight[16];
-		};
-		struct F2
-		{
-			float lowlight[16];
-			float normallight[16];
-			float brightlight[16];
-		};
-		struct F3{
-			float lowlight[16];
-			float normallight[16];
-			float brightlight[16];
-		};
-		struct F4{
-			float lowlight[16];
-			float normallight[16];
-			float brightlight[16];
-		};
+		long negmatrix[3]; // nz [0] for F1, [1] for F2, [2] for F3 and F4 
+		struct F F1;
+		struct F F2;
+		struct F F3;
+		struct F F4;
 		struct F5{
 			float light[16];
 		};
@@ -461,7 +452,7 @@ struct libchromatix
 		long oreg_vlmin[3];
 		struct lut3
 		{
-			loat lowlight[12];
+			float lowlight[12];
 			float normallight[12];
 			float brightlight[12];
 		};
@@ -520,7 +511,7 @@ struct libchromatix
 		struct temporal_noise_profile profile4;
 		struct temporal_noise_profile profile5;
 		struct temporal_noise_profile profile6;
-		long Algorithm; /* Algorithm Select, 0 power function, 1 Gaussian, 2 local linear minimum mean-squared error */
+		long Algorithm; // Algorithm Select, 0 power function, 1 Gaussian, 2 local linear minimum mean-squared error 
 	};
 
 	struct Skin_Color_Enhancement
@@ -569,7 +560,7 @@ struct libchromatix
 			ubyte Saturation[4]; //R, GR, GB, B
 			float Offset[4];
 			word num_regions[2];
-			/* Bayer Exp Window */
+			// Bayer Exp Window 
 			ubyte Saturation[4]; //R, GR, GB, B
 			float Offset[4];
 			word num_regions[2];
