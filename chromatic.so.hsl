@@ -34,10 +34,13 @@ struct ExposureTableEntry
 
 struct ExposureTable
 {
-	long Use_Digital_Gain;
+	ushort Use_Digital_Gain;
 	
-	long Max_Exposure_Table_entries;
+	ushort Max_Exposure_Table_entries;
+	long Enable_Digital_Gain_for_EV_Lowlight;
+    long Max_Exposure_Table_Entries_for_EV_2_with_digital_gain;	
 	struct ExposureTableEntry entrys[Max_Exposure_Table_entries];
+	struct ExposureTableEntry entrys[Max_Exposure_Table_Entries_for_EV_2_with_digital_gain];
 	__verify(Max_Exposure_Table_entries >  0) ;
 	__verify(Use_Digital_Gain < 2 && Use_Digital_Gain >= 0) ;
 };
@@ -822,6 +825,13 @@ struct libchromatix
 		float BlueSkyPercentBuffer;
 		float SlopeFactorM;
 		float ExtremeMCCBlueThreshold;
+	};
+	
+	struct AutoExposureCalc
+	{
+		long softwaretype;
+		float cc_global_gain;
+		struct ExposureTable expotable;
 	};
 };
 
