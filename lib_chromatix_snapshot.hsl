@@ -9,7 +9,7 @@
 
 typedef enum CHUNK_TYPE
 {
-    EXPOSURE_TABLE_SIZE   = 540, //default 500, lg g3 540
+    EXPOSURE_TABLE_SIZE   = 500, //default 500, lg g3 540
     //DATA_CHUNK   = "data",
 } CHUNK_TYPE ;
 
@@ -1051,7 +1051,7 @@ exposure table data types
 typedef struct exposure_entry_type
 {
     unsigned short gain;                        // Gain
-	_short_empty empty;
+	unsigned short empty;
     unsigned long line_count;                  // LineCt
 } exposure_entry_type;
 
@@ -1294,10 +1294,10 @@ typedef struct AEC_algo_struct_type
 
     chromatix_exposure_table_type          chromatix_exposure_table;                  // Table
     snapshot_exposure_type snapshot_exposure_table;
-
+    
     unsigned char _default_luma_target_val;                       // Default
     unsigned char                                  outdoor_luma_target;                       // Outdoor
-	_short_empty empty;
+    _short_empty empty;
     //removed in 0x300   unsigned char                                  lowlight_luma_target;                      // LowLight
     //removed from 0x207
     //unsigned char                                  backlight_luma_target;             // BacklightLuma
