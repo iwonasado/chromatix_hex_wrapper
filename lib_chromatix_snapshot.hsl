@@ -9,10 +9,18 @@
 
 typedef enum CHUNK_TYPE
 {
-    EXPOSURE_TABLE_SIZE   = 500, //default 500, lg g3 540
+    //THAT value is defined in libmmcamera2_sensor_modules
+    EXPOSURE_TABLE_SIZE   = 540, //default 500, lg g3 540
     //DATA_CHUNK   = "data",
 } CHUNK_TYPE ;
 
+struct exposize
+{
+	unsigned short character1 : 8;
+    unsigned short character1 : 8;
+	unsigned short character1 : 8;
+	unsigned short character1 : 8;
+};
 
 
 #pragma hide()
@@ -26,6 +34,26 @@ typedef struct _short_empty{ blob space[2];}_short_empty;
 #pragma hide()
 typedef struct _long_empty{ blob space[4];}_long_empty;
 #pragma show()
+
+#pragma enumsize(1);
+typedef enum Control_Method_type
+{
+	disabled = 0,
+	enabled
+}Control_Method_type;
+
+typedef enum Control_Method_useGain
+{
+	useLux = 0,
+	useGain
+}Control_Method_useGain;
+#pragma enumsize(4);
+
+typedef struct Control_Method
+{
+	Control_Method_useGain type;
+	_char_empty emtpy[3];
+}Control_Method;
 
 typedef struct chromatix_version_type { 
 	unsigned short version_type;
@@ -293,8 +321,9 @@ typedef enum ASF_7x7_light_type
 typedef struct chromatix_asf_7_7_type
 {
     // ASF on/off flag
-    unsigned char asf_en;
-	_char_empty empty[3];
+	struct Control_Method asf_en;
+    //unsigned char asf_en;
+	//_char_empty empty[3];
 	
 
     //VFE4 
@@ -1553,8 +1582,9 @@ typedef struct Bayer_AWB_parameters_type
 /**************************************************************************************/
 typedef struct chromatix_black_level_type
 {
-    tuning_control_type     control_blk;//default 0 for lux_index
-	_char_empty e[3];
+    Control_Method control_blk;
+    //tuning_control_type     control_blk;//default 0 for lux_index
+	//_char_empty e[3];
     trigger_point_type          blk_lowlight_trigger;
     unsigned short                max_blk_increase; //default 15*16 in 12bit
     chromatix_4_channel_black_level        normal_light_4_channel;             // NormalLight4Channel
@@ -2115,7 +2145,8 @@ struct lib_chromatic
     * version does not match this one
     */
     chromatix_version_type                 chromatix_version;
-	unsigned char is_compressed;
+	Control_Method_type is_compressed;
+	//unsigned char is_compressed;
 	_char_empty e;
     unsigned short revision_number;
 	_short_empty e;
