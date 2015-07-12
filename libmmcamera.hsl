@@ -1,0 +1,21 @@
+#include "standard-types.hsl"
+#pragma enumsize(4);
+#pragma ptrsize(4);
+#pragma byteorder(little_endian);
+
+#pragma displayname("Elf (*.so)") ;
+#pragma fileextensions(".so") ;
+
+struct sensor_lib_out_info_t {
+  short x_output;
+  short y_output;
+  short line_length_pclk;
+  short frame_length_lines;
+  long vt_pixel_clk;
+  long op_pixel_clk;
+  short binning_factor;
+  blob empty[2];
+  float    min_fps;
+  float    max_fps;
+  long mode;
+}sensor_lib_out_info_t;
