@@ -1,0 +1,186 @@
+#include "standard-types.hsl"
+
+#pragma enumsize(4)
+#pragma ptrsize(4)
+#pragma byteorder(little_endian)
+
+#pragma displayname("Elf (*.so)") ;
+#pragma fileextensions(".so") ;
+
+typedef enum DEFINES
+{
+	MESH_ROLLOFF_SIZE  = 221, //17*13;
+}DEFINES;
+
+/// Tuning Control Flag. 0 is Lux Index based, 1 is Gain Based.
+typedef unsigned char tuning_control_type;
+
+/// This type holds both luma index and gain based trigger points to be
+/// used in configuration of VFE blocks.
+typedef struct trigger_point_type
+{
+    float gain_start;      ///< Gain based trigger point.
+    float gain_end;        ///< Gain based end point.
+    long lux_index_start; ///< Lux index based trigger point.
+    long lux_index_end;   ///< Lux index based end point.
+} trigger_point_type;
+
+typedef struct chromatix_CCT_trigger_type{
+    unsigned long CCT_start;
+    unsigned long CCT_end;
+} chromatix_CCT_trigger_type;
+
+typedef struct chromatix_version_type { 
+	unsigned short version_type;
+}chromatix_version_type;
+
+typedef struct chromatix_linearization_type
+{
+    unsigned short r_lut_p[8]; // 12uQ0
+    unsigned short r_lut_base[9]; // 12uQ0
+	blob emtpy[2];
+    float r_lut_delta[9]; // 18uQ9
+    // GR channel knee points & LUT (2 banks)
+    unsigned short gr_lut_p[8]; // 12uQ0
+    unsigned short gr_lut_base[9]; // 12uQ0
+	blob emtpy[2];
+    float gr_lut_delta[9]; // 18uQ9
+    // GB channel knee points & LUT (2 banks)
+    unsigned short gb_lut_p[8]; // 12uQ0
+    unsigned short gb_lut_base[9]; // 12uQ0
+	blob emtpy[2];
+    float gb_lut_delta[9]; // 18uQ9
+    // B channel knee points & LUT (2 banks)
+    unsigned short b_lut_p[8]; // 12uQ0
+    unsigned short b_lut_base[9]; // 12uQ0
+	blob emtpy[2];
+    float b_lut_delta[9]; // 18uQ9
+} chromatix_linearization_type;
+
+/******************************************************************************
+roll-off data types
+******************************************************************************/
+typedef enum chromatix_rolloff_light_type
+{
+    ROLLOFF_TL84_LIGHT, /* Flourescent */
+    ROLLOFF_A_LIGHT,    /* Incandescent */
+    ROLLOFF_D65_LIGHT,  /* Day Light */
+ //   ROLLOFF_LOW_LIGHT,  /* Low Light */ removed for 0x300
+ //   ROLLOFF_PREVIEW,    //204, added for preview, removed for 0x300
+    ROLLOFF_MAX_LIGHT,
+    ROLLOFF_INVALID_LIGHT
+} chromatix_rolloff_light_type;
+
+typedef struct mesh_rolloff_array_type
+{
+    unsigned short                 mesh_rolloff_table_size;     // TableSize
+	blob emtpy[2];
+
+    float                  r_gain[MESH_ROLLOFF_SIZE];   // RGain
+
+    float                  gr_gain[MESH_ROLLOFF_SIZE];  // GRGain
+
+    float                  gb_gain[MESH_ROLLOFF_SIZE];  // GBGain
+
+    float                  b_gain[MESH_ROLLOFF_SIZE];   // BGain
+} mesh_rolloff_array_type;
+
+typedef struct chromatix_L_type
+{
+    tuning_control_type control_linearization;
+    // trigger_point_type linearization_bright_trigger;
+    trigger_point_type linearization_lowlight_trigger; //changed to lowlight trigger in 0x300
+
+    chromatix_CCT_trigger_type linear_A_trigger;
+    chromatix_CCT_trigger_type linear_D65_trigger;
+
+    chromatix_linearization_type linear_table_A_lowlight;//changed to lowlightin 0x300
+    chromatix_linearization_type linear_table_A_normal;
+    chromatix_linearization_type linear_table_TL84_lowlight;//changed to lowlightin 0x300
+    chromatix_linearization_type linear_table_TL84_normal;
+    chromatix_linearization_type linear_table_Day_lowlight;//changed to lowlightin 0x300
+    chromatix_linearization_type linear_table_Day_normal;
+} chromatix_L_type;
+
+typedef struct chromatix_rolloff_type
+{
+    tuning_control_type         control_rolloff;//default 0 for lux_index
+	blob emtpy[3];
+    trigger_point_type      rolloff_lowlight_trigger; //0x208
+    chromatix_CCT_trigger_type rolloff_A_trigger;
+    chromatix_CCT_trigger_type rolloff_D65_trigger;
+
+    // 0x206, use led influence params from AEC, sensitivity_low, senstivity_high, sensitivity_off
+    float rolloff_LED_start;
+    float rolloff_LED_end ;
+    float rolloff_Strobe_start;
+    float rolloff_Strobe_end;
+
+    mesh_rolloff_array_type                chromatix_mesh_rolloff_table[ROLLOFF_MAX_LIGHT]; // Mesh
+    mesh_rolloff_array_type                chromatix_mesh_rolloff_table_lowlight[ROLLOFF_MAX_LIGHT]; // NEW
+    mesh_rolloff_array_type                chromatix_mesh_rolloff_table_golden_module[ROLLOFF_MAX_LIGHT]; // NEW
+    mesh_rolloff_array_type                chromatix_mesh_rolloff_table_LED;
+    mesh_rolloff_array_type                chromatix_mesh_rolloff_table_Strobe;
+} chromatix_rolloff_type;
+
+typedef struct chromatix_LA_special_effects_type
+{
+
+    float LA_LUT_backlit[64];
+    float LA_LUT_solarize[64];
+    float LA_LUT_posterize[64];
+    float LA_LUT_blackboard[64];
+    float LA_LUT_whiteboard[64];
+} chromatix_LA_special_effects_type;
+
+/******************************************************************************
+******************************************************************************
+******************************************************************************
+******************************************************************************
+******************************************************************************
+******************************************************************************
+    CHROMATIX COMMON VFE HEADER definition
+ ******************************************************************************
+ ******************************************************************************
+ ******************************************************************************
+ ******************************************************************************
+ ******************************************************************************
+ ******************************************************************************/
+
+typedef struct chromatix_VFE_common_type
+{
+//common structs
+
+	chromatix_version_type                 chromatix_version;
+	blob emtpy[2];
+    unsigned char is_compressed;
+	blob emtpy[1];
+
+unsigned short                         revision_number;
+blob empty[3];
+
+/******************************************************************************
+    Linearization
+    changed from brightlight to lowlight in 0x300
+    ******************************************************************************/
+    chromatix_L_type chromatix_L;
+
+    /******************************************************************************
+    Lens Rolloff   (Rolloff)
+    removed radial based supports
+    added lowlight rolloff for different illuminants
+    ******************************************************************************/
+    chromatix_rolloff_type chromatix_rolloff;
+
+    /******************************************************************************
+    Luma adaptation
+    These are parameters for special effect, manual BSM
+    ******************************************************************************/
+    chromatix_LA_special_effects_type chromatix_LA_special_effects;
+} chromatix_VFE_common_type;
+
+struct chromatix_common
+{
+	blob elfheader[4100];
+	chromatix_VFE_common_type Chromatix_VFE_common_type;
+};
